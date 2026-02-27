@@ -13,7 +13,6 @@ const client = new Client({
   ]
 });
 
-client.login(process.env.TOKEN);
 const LOG_CHANNEL_ID = "1476645987387965457";
 
 const invites = new Map();
@@ -22,10 +21,10 @@ const userInvites = new Map();
 client.once("ready", async () => {
   console.log(`${client.user.tag} aktif!`);
 
-  client.guilds.cache.forEach(async (guild) => {
+  for (const guild of client.guilds.cache.values()) {
     const guildInvites = await guild.invites.fetch();
     invites.set(guild.id, guildInvites);
-  });
+  }
 });
 
 client.on("inviteCreate", async (invite) => {
@@ -38,6 +37,8 @@ client.on("guildMemberAdd", async (member) => {
 
   const newInvites = await guild.invites.fetch();
   const oldInvites = invites.get(guild.id);
+
+  if (!oldInvites) return;
 
   const inviteUsed = newInvites.find(i =>
     oldInvites.get(i.code)?.uses < i.uses
@@ -72,3 +73,10 @@ client.on("messageCreate", (message) => {
   }
 });
 
+/* TOKEN KONTROLÜ */
+if (!process.env.TOKEN) {
+  console.error("TOKEN bulunamadı! Railway Variables kısmına TOKEN ekle.");
+  process.exit(1);
+}
+
+client.login(process.env.TOKEN);
